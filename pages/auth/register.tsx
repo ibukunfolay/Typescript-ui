@@ -1,49 +1,37 @@
-import React from 'react';
-import { object, string } from 'zod';
+import React, { useState } from 'react';
+import axios from 'axios';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-interface IFormInput {
-  username: String;
-  email: String;
-  password: String;
-  passwordConfirmation: String;
-}
-
-export const createUserSchema = object({
-  email: string({
-    required_error: 'Email is required',
-  }).email({ message: 'invalid email' }),
-  username: string().min(1, 'Name is required'),
-  password: string({
-    required_error: 'Password is required',
-  }).min(6, 'password must be more than six characters'),
-  passwordConfirmation: string().min(1, {
-    message: 'Confirm Password is required',
-  }),
-}).refine((data) => data.password === data.passwordConfirmation, {
-  message: 'Passwords do not match',
-  path: ['password confirmation'],
-});
+import { createUserInput, createUserSchema } from '../../lib/schema/userInput';
+import { useRouter } from 'next/router';
 
 const Register = () => {
+  const router = useRouter();
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+  const [registerError, setRegisterError] = useState(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<IFormInput>({
+  } = useForm<createUserInput>({
     resolver: zodResolver(createUserSchema),
   });
 
-  const onSubmit = handleSubmit((data) => {
-    console.log(data);
-  });
-
-  console.log({ errors });
+  const onSubmit = async (data: createUserInput) => {
+    try {
+      await axios.post(`${BASE_URL}/api/users`, data);
+      router.push('/');
+    } catch (e: any) {
+      setRegisterError(e.message);
+    }
+  };
 
   return (
     <>
-      <form onSubmit={onSubmit}>
+      <p>{registerError}</p>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-element">
           <label htmlFor="email" className="">
             Email
@@ -57,16 +45,16 @@ const Register = () => {
           {errors.email && <p>{errors.email?.message}</p>}
         </div>
         <div className="form-element">
-          <label htmlFor="username" className="">
-            Username
+          <label htmlFor="name" className="">
+            Name
           </label>
           <input
             type="text"
-            className="username"
-            placeholder="enter you username"
-            {...register('username')}
+            className="name"
+            placeholder="enter you name"
+            {...register('name')}
           />
-          {errors.username && <p>{errors.username?.message}</p>}
+          {errors.name && <p>{errors.name?.message}</p>}
         </div>
         <div className="form-element">
           <label htmlFor="password" className="">
