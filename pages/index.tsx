@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import React from 'react';
 import useSWR from 'swr';
 import fetcher from '../lib/utils/fetcher';
+import getGoogleOauthUrl from '../lib/utils/getGoogleUrl';
 
 interface IUser {
   _id: string;
@@ -18,7 +19,7 @@ interface IUser {
 const Home = () => {
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-  const { data, error } = useSWR<IUser>(`${BASE_URL}/api/me`, fetcher);
+  const { data, error } = useSWR<IUser | null>(`${BASE_URL}/api/me`, fetcher);
 
   // if (error) return <div className="">Failed to load</div>;
 
@@ -27,6 +28,7 @@ const Home = () => {
   return (
     <div className="con">
       <p className="">Please Login.</p>
+      <a href={getGoogleOauthUrl()}>Login with google</a>
     </div>
   );
 };
